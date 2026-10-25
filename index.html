@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>คลังอาวุธ BRW Gundam</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="ค้นหาและกรองอาวุธ อุปกรณ์ และ Augment ของเกม homebrew BRW Gundam ตามประเภท cost ระยะ และแท็ก">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Noto+Sans+Thai:wght@400;500;600&display=swap">
+<style>
+/* Layout: sticky filter rail on the left, card grid on the right; on phones the rail folds into a toggle above the grid. */
+:root{
+  --bg:#eceff3; --surface:#ffffff; --surface-2:#f4f6f9; --line:#d5dae2; --fg:#151a22; --muted:#5a6475;
+  --accent:#1d4ed8; --accent-fg:#ffffff; --accent-soft:#dbe6ff;
+  --weapon:#c2352b; --weapon-soft:#fbe3e0;
+  --equip:#a8610a; --equip-soft:#fbebd2;
+  --aug:#0f7a6e; --aug-soft:#d6f1ec;
+  --font-display:"Chakra Petch","Noto Sans Thai",system-ui,sans-serif;
+  --font-body:"Noto Sans Thai",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --radius:6px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1319; --surface:#171d26; --surface-2:#1d2430; --line:#2c3543; --fg:#e8ecf2; --muted:#9aa5b8;
+  --accent:#7ea2ff; --accent-fg:#0b1020; --accent-soft:#1f2c4d;
+  --weapon:#ff8a7e; --weapon-soft:#3a1d1a;
+  --equip:#f0b45c; --equip-soft:#392710;
+  --aug:#4fd1bf; --aug-soft:#12332e; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1319; --surface:#171d26; --surface-2:#1d2430; --line:#2c3543; --fg:#e8ecf2; --muted:#9aa5b8;
+  --accent:#7ea2ff; --accent-fg:#0b1020; --accent-soft:#1f2c4d;
+  --weapon:#ff8a7e; --weapon-soft:#3a1d1a;
+  --equip:#f0b45c; --equip-soft:#392710;
+  --aug:#4fd1bf; --aug-soft:#12332e; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:15px;line-height:1.55;
+  padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--font-display);font-size:clamp(1.5rem,4vw,2.1rem);line-height:1.1;margin:0;font-weight:700;letter-spacing:.01em;text-wrap:balance}
+.sub{color:var(--muted);margin:4px 0 0;font-size:.9rem}
+.stamp{font-family:var(--font-display);font-size:.8rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+
+.layout{display:grid;grid-template-columns:290px minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:860px){.layout{grid-template-columns:minmax(0,1fr)}}
+
+/* filter rail */
+.rail{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px;display:flex;flex-direction:column;gap:18px;position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto}
+@media (max-width:860px){.rail{position:static;max-height:none}.rail[data-open="false"]{display:none}}
+.show-res{display:none}
+@media (max-width:860px){.show-res{display:block}}
+.toggle-rail{display:none}
+@media (max-width:860px){.toggle-rail{display:flex}}
+.group{display:flex;flex-direction:column;gap:8px;min-width:0}
+.group>h2,.group>.lbl{font-family:var(--font-display);font-size:.78rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:0;font-weight:600;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+button,input,select{font:inherit;color:inherit}
+.chip{appearance:none;border:1px solid var(--line);background:var(--surface-2);color:var(--fg);border-radius:var(--radius);padding:5px 10px;cursor:pointer;display:inline-flex;gap:6px;align-items:baseline;line-height:1.3;min-height:34px;align-items:center}
+.chip small{color:var(--muted);font-size:.75rem;font-variant-numeric:tabular-nums}
+.chip:hover{border-color:var(--accent)}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.chip[aria-pressed="true"] small{color:inherit;opacity:.8}
+.chip.cost{min-width:42px;justify-content:center;font-family:var(--font-display);font-weight:600}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.seg button{appearance:none;border:0;background:var(--surface-2);padding:3px 10px;cursor:pointer;font-size:.78rem;text-transform:none;letter-spacing:0;min-height:28px}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg)}
+input[type=search],select{width:100%;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius);padding:9px 12px;min-height:40px}
+input[type=search]:focus,select:focus,.chip:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{appearance:none;border:1px solid var(--line);background:var(--surface);border-radius:var(--radius);padding:8px 14px;cursor:pointer;min-height:40px}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+
+/* results */
+.results{display:flex;flex-direction:column;gap:12px;min-width:0}
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;justify-content:space-between}
+.count{font-family:var(--font-display);font-size:1.05rem;font-weight:600}
+.count span{color:var(--muted);font-weight:500}
+.bar-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.bar-right label{display:flex;align-items:center;gap:6px;font-size:.88rem;color:var(--muted)}
+.bar-right select{width:auto;min-height:36px;padding:5px 10px}
+.active{display:flex;flex-wrap:wrap;gap:6px}
+.active:empty{display:none}
+.tag-x{appearance:none;border:1px solid var(--accent);background:var(--accent-soft);color:var(--fg);border-radius:999px;padding:2px 10px;font-size:.82rem;cursor:pointer;min-height:28px}
+.tag-x::after{content:" ×";color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.card[data-type="Weapon"]{--t:var(--weapon);--ts:var(--weapon-soft)}
+.card[data-type="Equipment"]{--t:var(--equip);--ts:var(--equip-soft)}
+.card[data-type="Augment"]{--t:var(--aug);--ts:var(--aug-soft)}
+.head{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:start}
+.cost-box{width:46px;height:46px;border-radius:var(--radius);background:var(--ts);color:var(--t);border:1px solid var(--t);display:grid;place-items:center;font-family:var(--font-display);font-weight:700;font-size:1.5rem;line-height:1;font-variant-numeric:tabular-nums;position:relative}
+.cost-box i{position:absolute;bottom:-1px;right:3px;font-style:normal;font-size:.5rem;letter-spacing:.08em;font-weight:600;opacity:.8}
+.title{margin:0;font-family:var(--font-display);font-size:1.08rem;line-height:1.25;font-weight:600;overflow-wrap:anywhere}
+.kind{font-size:.78rem;color:var(--t);font-weight:600;display:flex;gap:8px;flex-wrap:wrap;margin-top:2px;align-items:center}
+.mod{background:var(--ts);color:var(--t);border-radius:3px;padding:0 6px;font-weight:600}
+.meta{display:flex;flex-wrap:wrap;gap:6px}
+.pill{font-size:.78rem;border:1px solid var(--line);background:var(--surface-2);border-radius:999px;padding:1px 9px;white-space:nowrap}
+.pill.range{border-color:var(--accent);background:var(--accent-soft)}
+.pill.slot{border-style:dashed}
+details{border-top:1px solid var(--line);padding-top:8px}
+summary{cursor:pointer;color:var(--muted);font-size:.85rem;list-style:none;display:flex;justify-content:space-between;min-height:28px;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font-family:var(--font-display);font-size:1.1rem}
+details[open] summary::after{content:"–"}
+.txt{white-space:pre-wrap;overflow-wrap:anywhere;font-size:.9rem;margin:8px 0 0;font-family:var(--font-body)}
+.copy{margin-top:10px;padding:4px 12px;min-height:34px;font-size:.85rem;align-self:flex-start}
+.empty{border:1px dashed var(--line);border-radius:var(--radius);padding:32px 16px;text-align:center;color:var(--muted);display:flex;flex-direction:column;gap:12px;align-items:center}
+.foot{color:var(--muted);font-size:.82rem;margin-top:8px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@media (prefers-reduced-motion:no-preference){.chip,.btn{transition:background .12s,border-color .12s}}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>คลังอาวุธ BRW Gundam</h1>
+      <p class="sub">อาวุธ อุปกรณ์ และ Augment ค้นหาและกรองตามประเภท cost ระยะ และแท็ก</p>
+    </div>
+    <div class="stamp" id="stamp"></div>
+  </header>
+
+  <button class="btn toggle-rail" id="toggleRail" aria-expanded="false" aria-controls="rail">ตัวกรอง</button>
+
+  <div class="layout">
+    <aside class="rail" id="rail" data-open="true" aria-label="ตัวกรอง">
+      <div class="group">
+        <label class="lbl" for="q">ค้นหา</label>
+        <input id="q" type="search" placeholder="ชื่อ หรือคำในข้อความ เช่น รีโหลด, Psychic" autocomplete="off">
+      </div>
+      <div class="group"><h2>ประเภท</h2><div class="chips" id="f-type"></div></div>
+      <div class="group"><h2>Cost</h2><div class="chips" id="f-cost"></div></div>
+      <div class="group"><h2>ระยะ</h2><div class="chips" id="f-range"></div></div>
+      <div class="group">
+        <h2>แท็ก <span class="seg" role="group" aria-label="โหมดแท็ก"><button type="button" id="mode-any" aria-pressed="true">อย่างใดอย่างหนึ่ง</button><button type="button" id="mode-all" aria-pressed="false">ครบทุกแท็ก</button></span></h2>
+        <div class="chips" id="f-tag"></div>
+      </div>
+      <div class="group" id="g-slot"><h2>ช่อง Augment</h2><div class="chips" id="f-slot"></div></div>
+      <div class="group" id="g-time"><h2>Timeline</h2><div class="chips" id="f-time"></div></div>
+      <button class="btn" id="reset" type="button">ล้างตัวกรองทั้งหมด</button>
+      <button class="btn primary show-res" id="showRes" type="button">ดูผลลัพธ์</button>
+    </aside>
+
+    <main class="results">
+      <div class="bar">
+        <div class="count" id="count" role="status" aria-live="polite"></div>
+        <div class="bar-right">
+          <label for="sort">เรียงตาม
+            <select id="sort">
+              <option value="id">ลำดับในชีต</option>
+              <option value="cost-asc">Cost น้อย → มาก</option>
+              <option value="cost-desc">Cost มาก → น้อย</option>
+              <option value="name">ชื่อ A → Z</option>
+            </select>
+          </label>
+          <button class="btn" id="expand" type="button" aria-pressed="false">ขยายข้อความทั้งหมด</button>
+        </div>
+      </div>
+      <div class="active" id="active"></div>
+      <div class="grid" id="grid"></div>
+      <p class="foot" id="foot"></p>
+    </main>
+  </div>
+</div>
+
+<script type="application/json" id="seed">[{"id": 1, "timeline": "UC 0079", "name": "120mm Machine Gun (2)", "cost": 2, "type": "Weapon", "range": "ไกล", "tags": "กายภาพ", "augmentslot": "", "text": "120mm Machine Gun (2) \n- [ไกล,กายภาพ]\n- DMG 1 เต๋า\n- สามารถเลือกโจมตีได้ 2 ครั้งในหนึ่งเทิร์น หลังจากนั่นต้องรีโหลด"}, {"id": 2, "timeline": "UC 0079", "name": "Heat Hawk (2)", "cost": 2, "type": "Equipment", "range": "ใกล้", "tags": "กายภาพ,ความร้อน", "augmentslot": "", "text": "Heat Hawk (2)\n- [ใกล้,กายภาพ,ความร้อน]\n- DMG 1 เต๋า"}, {"id": 3, "timeline": "UC 0079", "name": "Sturm Faust (1) +2", "cost": 1, "type": "Equipment", "range": "ไกล", "tags": "กายภาพ,ระเบิด", "augmentslot": "", "text": "Sturm Faust (1) +2\n- [ไกล,กายภาพ,ระเบิด]\n- ถ้าโจมตีสำเร็จทำDMGอีก 1 เต๋า\n- เมื่อโจมตีสำเร็จให้เป้าหมายทอยเต๋าถ้าได้ 3- จะไม่สามารถเข้า Other Action ได้"}, {"id": 4, "timeline": "UC 0079", "name": "Hand Grenade (1) +2", "cost": 1, "type": "Equipment", "range": "ไกล", "tags": "กายภาพ,ระเบิด", "augmentslot": "", "text": "Hand Grenade (1) +2\n- [ไกล,กายภาพ,ระเบิด]\n- ใช้ Other Action Phase เพื่อปาพื้นที่ใดก็ได้ในระยะตามเลขเต๋าของ Body ปัจจุบัน\n- ทำ DMG 1 เต๋าต่อยูนิต และทำDMG 2 เต๋าต่อที่กำบังในรัศมี 2 ช่อง\n- ถ้าใช้เสริมการโจมตีสำเร็จทำDMGอีก 1 เต๋ารวมถึงยูนิตที่รอบตัวภายในรัศมี 1 ช่อง"}, {"id": 5, "timeline": "UC 0079", "name": "Smoke Grenade (1)+1", "cost": 1, "type": "Equipment", "range": "ไกล", "tags": "กายภาพ,ระเบิด", "augmentslot": "", "text": "Smoke Grenade (1)+1\n- [ไกล,กายภาพ,ระเบิด]\n- ใช้ Other Action Phase เพื่อปาพื้นที่ใดก็ได้ในระยะตามเลขเต๋าของ [Body] ปัจจุบัน\n- สร้างพื้นที่บดบังวิสัยทัศน์ในบริเวณรัศมี 2 ช่องที่ถูกปาเป็นเวลา 2 เทิร์นของตนเอง และยูนิตในพื้นที่จะได้การกระทำ ซ่อนตัว ทันที"}, {"id": 6, "timeline": "UC 0079", "name": "Beam spray gun (2)", "cost": 2, "type": "Weapon", "range": "ไกล", "tags": "พลังงาน", "augmentslot": "", "text": "Beam spray gun (2)\n- [ไกล,พลังงาน]\n- DMG 1 เต๋า\n- สามารถใช้ยิงได้ แม้เทิร์นนี้โจมตีระยะใกล้แล้ว\n- เมื่อเล็งศัตรูที่อยู่ติดกันจะโจมตีไม่เสียเปรียบ"}, {"id": 7, "timeline": "UC 0079", "name": "Beam Saber (2)", "cost": 2, "type": "Weapon", "range": "ใกล้", "tags": "พลังงาน", "augmentslot": "", "text": "Beam Saber (2)\n- [ใกล้,พลังงาน]\n- DMG 1 เต๋า"}, {"id": 8, "timeline": "UC 0079", "name": "โล่Luna titanium Alloy (1) x3", "cost": 1, "type": "Equipment", "range": "ใกล้", "tags": "กายภาพ", "augmentslot": "", "text": "โล่Luna titanium Alloy (1) x3\n- [ใกล้,กายภาพ]\n- ใช้เสริมการโจมตี [ใกล้] และตั้งรับได้"}, {"id": 9, "timeline": "UC 0079", "name": "90mm Bullpup Machine Gun (2)", "cost": 2, "type": "Weapon", "range": "ไกล", "tags": "กายภาพ", "augmentslot": "", "text": "90mm Bullpup Machine Gun (2) \n- [ไกล,กายภาพ]\n- DMG 1 เต๋า\n- สามารถเลือกโจมตีได้ 2 ครั้งในหนึ่งเทิร์น หลังจากนั่นต้องรีโหลด"}, {"id": 10, "timeline": "UC 0079", "name": "Vulcan Gun (1) x3", "cost": 1, "type": "Augment", "range": "ไกล", "tags": "กายภาพ", "augmentslot": "Body", "text": "> Vulcan Gun (1)x3\n    -  [ไกล,กายภาพ,Body]\n    - ระยะ 2 ช่อง\n    - เมื่อโจมตีสำเร็จให้ทอยD6 TNที่ 4+ ถ้าสำเร็จ DMG +1"}, {"id": 11, "timeline": "UC 0079", "name": "Sniper Beam rifle (5)", "cost": 5, "type": "Weapon", "range": "ไกล", "tags": "พลังงาน", "augmentslot": "", "text": "Sniper Beam rifle (5)\n- [ไกล,พลังงาน]\n- DMG 2 เต๋า"}, {"id": 12, "timeline": "UC 0079", "name": "BOWA*XBR-M-79-07G Beam Rifle (4)", "cost": 4, "type": "Weapon", "range": "ไกล", "tags": "พลังงาน", "augmentslot": "", "text": "BOWA*XBR-M-79-07G Beam Rifle (4)\n- [ไกล,พลังงาน]\n- DMG 2 เต๋า"}, {"id": 13, "timeline": "UC 0079", "name": "BLASH*XHB-L-03/N-STD Hyper Bazooka (4)", "cost": 4, "type": "Weapon", "range": "ไกล", "tags": "กายภาพ", "augmentslot": "", "text": "BLASH*XHB-L-03/N-STD Hyper Bazooka (4)\n- [ไกล,กายภาพ] \n- DMG 2 เต๋า"}, {"id": 14, "timeline": "UC 0079", "name": "Beam Javelin (4)", "cost": 4, "type": "Weapon", "range": "กลาง", "tags": "พลังงาน", "augmentslot": "", "text": "Beam Javelin (4)\n- [กลาง,พลังงาน] \n- DMG d2 เต๋า\n- เมื่อทำการตะบันพุ่ง ได้รับโบนัส +1 เต๋าในการโจมตีครั้งแรกของรอบนั้น"}, {"id": 15, "timeline": "UC 0079", "name": "Hyper Hammer (2)", "cost": 2, "type": "Weapon", "range": "กลาง", "tags": "กายภาพ", "augmentslot": "", "text": "Hyper Hammer (2)\n- [กลาง,กายภาพ]\n- ก่อนโจมตีทอย d2 ที่ TN 2 เมื่อสำเร็จระยะโจมตีเป็น 3 ช่อง\n- DMG 1 เต๋า"}, {"id": 16, "timeline": "UC 0079", "name": "Super Napalm (3)+1", "cost": 3, "type": "Equipment", "range": "ไกล", "tags": "กายภาพ", "augmentslot": "", "text": "Super Napalm (3)+1\n- [ไกล,กายภาพ]\n- เสริมการโจมตี 1 เต๋า\n- สามารถใช้อุปกรณ์นี้ได้ 3 ครั้ง\n- เมื่อโจมตีสำเร็จทำ DMG 1 เต๋า\n> Napalm Bomb (1)\n    - [ไกล,ความร้อน,ระเบิด]\n    - ใช้ Other Action เพื่อปาไปในพื้นที่ใดก็ได้ในระยะตามเลขเต๋าของ [Body] ปัจจุบัน\n    - ทำ DMG 1 เต๋าใส่ [Propulsion]ของยูนิตภายในระยะรัศมี 1 ช่อง\n    - เมื่อใช้ Napalm Bomb แล้ว Super Napalm จะหายไป"}, {"id": 17, "timeline": "UC 0079", "name": "240mm Cannon (3)", "cost": 3, "type": "Weapon", "range": "ไกล", "tags": "กายภาพ,ระเบิด", "augmentslot": "", "text": "240mm Cannon (3)\n- [ไกล,กายภาพ,ระเบิด]\n- DMG 1 เต๋า\n- เมื่อหมอบลง DMG d2 เต๋า"}, {"id": 18, "timeline": "UC 0079", "name": "XBR-M-79a Beam Rifle (4)", "cost": 4, "type": "Weapon", "range": "ไกล", "tags": "พลังงาน", "augmentslot": "", "text": "XBR-M-79a Beam Rifle (4)\n- [ไกล,พลังงาน]\n- DMG 2 เต๋า"}, {"id": 19, "timeline": "UC 0079", "name": "120mm Low-Recoil Cannon (4)", "cost": 4, "type": "Weapon", "range": "ไกล", "tags": "กายภาพ", "augmentslot": "", "text": "120mm Low-Recoil Cannon (4)\n- [ไกล,กายภาพ]\n- DMG D2 เต๋า\n> Long Firing Range (3)\n    - [ไกล,กายภาพ]\n    - DMG 1 เต๋า\n    - ระยะ 10 ช่อง\n    - การโจมตีนี้ไม่สามารถถูกเสริมการโจมตีได้\n    - การหมอบจะไม่เพิ่มระยะโจมตีนี้"}, {"id": 20, "timeline": "UC 0079", "name": "4-tube 40mm Bop Missile Launcher (3) +2", "cost": 3, "type": "Equipment", "range": "ไกล", "tags": "กายภาพ,ระเบิด", "augmentslot": "", "text": "4-tube 40mm Bop Missile Launcher (3) +2\n- [ไกล,กายภาพ,ระเบิด]\n- ถ้าโจมตีสำเร็จทำDMGอีก 1 เต๋า\n- สามารถใช้อุปกรณ์กระสุนดวงนี้ได้ 3 ครั้ง"}, {"id": 21, "timeline": "UC 0079", "name": "3-barrel 35mm Machine Gun (1) x3", "cost": 1, "type": "Augment", "range": "ไกล", "tags": "กายภาพ", "augmentslot": "Body", "text": "> 3-barrel 35mm Machine Gun (1) x3\n    - [ไกล,กายภาพ]\n    - ระยะ 2 ช่อง\n    - เมื่อโจมตีสำเร็จให้ทอยD6 TNที่ 4+ ถ้าสำเร็จ DMG +1"}, {"id": 22, "timeline": "UC 0079", "name": "Heat Rod (2)", "cost": 2, "type": "Weapon", "range": "กลาง", "tags": "กายภาพ,ไฟฟ้า", "augmentslot": "", "text": "Heat Rod (2) \n- [กลาง,กายภาพ,ไฟฟ้า]\n- DMG 1 เต๋า\n- เมื่อโจมตีสำเร็จ เป้าหมายต้องทอยเต๋า D6 ที่ TN 2+ (TN 3+ เมื่อ Critical) ถ้าไม่ผ่านจะไม่สามารถเคลื่อนที่ได้ 1 เทิร์น"}, {"id": 23, "timeline": "UC 0079", "name": "Heat Sword (3)", "cost": 3, "type": "Weapon", "range": "ใกล้", "tags": "กายภาพ,ความร้อน", "augmentslot": "", "text": "Heat Sword (3)\n- [ใกล้,กายภาพ,ความร้อน]\n- DMG 1 เต๋า\n- เมื่อใช้อาวุธนี้โจมตียูนิตตัวเดียว 2 ครั้งติดต่อกัน ยูนิตนั้นเข้า Other Action ไม่ได้ในรอบถัดไป"}, {"id": 24, "timeline": "UC 0079", "name": "Shield (1) x3", "cost": 1, "type": "Equipment", "range": "ใกล้", "tags": "กายภาพ", "augmentslot": "", "text": "Shield (1) x3\n- [ใกล้,กายภาพ]\n- ใช้เสริมการโจมตี [ใกล้] และตั้งรับได้"}, {"id": 25, "timeline": "UC 0079", "name": "Scatter beam gun (1) x3", "cost": 1, "type": "Augment", "range": "ไกล", "tags": "พลังงาน", "augmentslot": "Body", "text": "> Scatter beam gun (1) x3\n    - [ไกล,พลังงาน,Body]\n    - ระยะ 2 ช่อง\n    - เมื่อโจมตีสำเร็จให้ทอยD6 TNที่ 4+ ถ้าสำเร็จ DMG +1"}, {"id": 26, "timeline": "UC 0079", "name": "Heat Saber (2)", "cost": 2, "type": "Weapon", "range": "ไกล", "tags": "กายภาพ,ความร้อน", "augmentslot": "", "text": "Heat Saber (2)\n- [ไกล,กายภาพ,ความร้อน]\n- DMG 1 เต๋า"}, {"id": 27, "timeline": "UC 0079", "name": "360mm Giant Bazooka (4)", "cost": 4, "type": "Weapon", "range": "ไกล", "tags": "กายภาพ,ระเบิด", "augmentslot": "", "text": "360mm Giant Bazooka (4)\n- [ไกล,กายภาพ,ระเบิด]\n- DMG 2 เต๋า"}, {"id": 28, "timeline": "UC 0079", "name": "Amphibious Module (3)", "cost": 3, "type": "Augment", "range": "", "tags": "", "augmentslot": "Body", "text": "> Amphibious Module (3)\n    - [Body]\n    - เมื่อซ่อนตัว จะมีความยากในการถูกตามหาที่ TN 12 แต้ม"}, {"id": 29, "timeline": "UC 0079", "name": "Amphibious Booster (2)", "cost": 2, "type": "Augment", "range": "", "tags": "", "augmentslot": "Propulsion", "text": "> Amphibious Booster (2)\n    - [Propulsion]\n    - เมื่ออยู่พื้นที่น้ำ [Propulsion] +2 เต๋า"}, {"id": 30, "timeline": "UC 0079", "name": "Mega Particle Cannon (3)", "cost": 3, "type": "Weapon", "range": "ไกล", "tags": "พลังงาน", "augmentslot": "", "text": "Mega Particle Cannon (3)\n- [ไกล,พลังงาน]\n- DMG 1 เต๋า"}, {"id": 31, "timeline": "UC 0079", "name": "Iron Nail (3)", "cost": 3, "type": "Weapon", "range": "ใกล้", "tags": "กายภาพ", "augmentslot": "", "text": "Iron Nail (3)\n- [ใกล้,กายภาพ]\n- DMG 1 เต๋า"}, {"id": 32, "timeline": "UC 0079", "name": "Torpedo Launcher (1) +2", "cost": 1, "type": "Weapon", "range": "ไกล", "tags": "กายภาพ,ระเบิด", "augmentslot": "", "text": "Torpedo Launcher (1) +2\n- [ไกล,กายภาพ,ระเบิด]\n- ถ้าโจมตีสำเร็จทำDMGอีก 1 เต๋า\n- เมื่อโจมตีสำเร็จให้เป้าหมายทอยเต๋าถ้าได้ 3- จะไม่สามารถเข้า Other Action Phase ได้"}, {"id": 33, "timeline": "UC 0079", "name": "Boomerang Cutter (2)", "cost": 2, "type": "Weapon", "range": "ไกล", "tags": "กายภาพ", "augmentslot": "", "text": "Boomerang Cutter (2)\n- [ไกล,กายภาพ]\n- DMG 1 เต๋า\n- สามารถเลือกโจมตีได้ 2 ครั้งในหนึ่งเทิร์น หลังจากนั่นต้องรีโหลด"}, {"id": 34, "timeline": "UC 0079", "name": "Mega Particle Cannon (5)", "cost": 5, "type": "Weapon", "range": "ไกล", "tags": "พลังงาน", "augmentslot": "", "text": "Mega Particle Cannon (5)\n- [ไกล,พลังงาน]\n- DMG 2 เต๋า"}, {"id": 35, "timeline": "UC 0079", "name": "Photon Maser Gun (3)", "cost": 3, "type": "Weapon", "range": "ไกล", "tags": "พลังงาน", "augmentslot": "", "text": "Photon Maser Gun (3)\n- [ไกล,พลังงาน]\n- DMG 1 เต๋า"}, {"id": 36, "timeline": "UC 0079", "name": "6-tube Missile Launcher (1) +2", "cost": 1, "type": "Equipment", "range": "ไกล", "tags": "กายภาพ,ระเบิด", "augmentslot": "", "text": "6-tube Missile Launcher (1) +2\n- [ไกล,กายภาพ,ระเบิด]\n- เมื่อโจมตีสำเร็จทำDMGอีก 1 เต๋า"}, {"id": 37, "timeline": "UC 0079", "name": "240mm Missile Launcher (1) +1", "cost": 1, "type": "Augment", "range": "ไกล", "tags": "กายภาพ,ระเบิด", "augmentslot": "Body", "text": "> 240mm Missile Launcher (1) +1\n   - [ไกล,กายภาพ,ระเบิด,Body]\n   - ใช้เสริมการโจมตีและตั้งรับ +1 เต๋า\n   - ถ้าโจมตีสำเร็จทำDMGอีก 1 เต๋า"}, {"id": 38, "timeline": "UC 0079", "name": "Beam Naginata (3)", "cost": 3, "type": "Weapon", "range": "ใกล้", "tags": "พลังงาน", "augmentslot": "", "text": "Beam Naginata (3)\n- [ใกล้,พลังงาน]\n- DMG D2 เต๋า\n- เมื่อทำการ Parry อาวุธนี้ รับโบนัส +1 เต๋า"}, {"id": 39, "timeline": "UC 0079", "name": "Beam rifle (4)", "cost": 4, "type": "Weapon", "range": "ไกล", "tags": "พลังงาน", "augmentslot": "", "text": "Beam rifle (4)\n- [ไกล,พลังงาน]\n- DMG 2 เต๋า"}, {"id": 40, "timeline": "UC 0079", "name": "Beam Saber (5)", "cost": 5, "type": "Weapon", "range": "ใกล้", "tags": "พลังงาน", "augmentslot": "", "text": "Beam Saber (5)\n- [ใกล้,พลังงาน]\n- DMG 2 เต๋า"}, {"id": 41, "timeline": "UC 0079", "name": "Missile Shield (2) x3", "cost": 2, "type": "Equipment", "range": "ใกล้,ไกล", "tags": "กายภาพ", "augmentslot": "", "text": "Missile Shield (2) x3\n- [ใกล้,ไกล,กายภาพ]\n- เมื่อโจมตีสำเร็จทำDMG+1"}, {"id": 42, "timeline": "UC 0079", "name": "Detachable Head (4)", "cost": 4, "type": "Augment", "range": "", "tags": "", "augmentslot": "Body", "text": "> Detachable Head (4)\n    - [Body] \n    - เมื่อClicheใดๆของยูนิตที่ติดตั้งเป็น 0 จะยังไม่หมดสภาพการต่อสู้ แล้วจะกลายเป็นยูนิต MS Head ที่มี Body (1) / Propulsion (2) และอาวุธ Head Mega Particle Cannon (3)\n    -> Head Mega Particle Cannon (3)\n       - [ไกล,พลังงาน]\n       - DMG 1 เต๋า"}, {"id": 43, "timeline": "UC 0079", "name": "Waist Mega Particle Cannon (4)", "cost": 4, "type": "Weapon", "range": "ไกล", "tags": "พลังงาน", "augmentslot": "", "text": "Waist Mega Particle Cannon (4)\n- [ไกล,พลังงาน]\n- DMG 2 เต๋า"}, {"id": 44, "timeline": "UC 0079", "name": "Wired 5-barrel Mega Particle Cannon (6)", "cost": 6, "type": "Weapon", "range": "ไกล", "tags": "พลังงาน,รีโมท", "augmentslot": "", "text": "Wired 5-barrel Mega Particle Cannon (6)\n- [ไกล,พลังงาน,รีโมท]\n- นักบินต้องมี [Psychic] ถึงจะใช้ได้\n- DMG 2 เต๋า\n- เมื่อใช้อาวุธนี้เริ่มโจมตี [Propulsion]ของเป้าหมาย -2 เต๋าเป็นเวลา 1 เทิร์นของตนเอง\n> Spread shot (4) \n   - [ไกล,พลังงาน,รีโมท]\n   - DMG 2 เต๋า\n   - เลือกเป้าหมายโจมตีได้ 2 ครั้ง"}, {"id": 45, "timeline": "UC 0079", "name": "G-Parts Docking Unit (4)", "cost": 4, "type": "Augment", "range": "", "tags": "", "augmentslot": "Body", "text": "> G-Parts Docking Unit (4)\n    - [Body]\n    - ยูนิตที่ติดตั้งอุปกรณ์ส่วนเสริมนี้ เมื่อกำลังบินอยู่บนชั้นบรรยากาศ หรือต่อสู้ในอวกาศ สามารถทำการยกวัตถุต่างๆโดยไม่ต้องใช้ Other Action และไม่มีผลเสียจากการกระทำนั้น\n    - สามารถใช้เลือกเข้ารวมร่างกับยูนิตที่มี G-Parts Docking Unit อยู่ติดกันกลายเป็นยูนิตตัวเดียวกัน\n    - ยูนิตที่รวมร่างแล้ว ให้เลือกยูนิตใดยูนิตนึงเป็นยูนิตหลัก มี [Body], [Propulsion], อาวุธ/อุปกรณ์ทั้งหมดของยูนิตนั้นตามปัจจุบันเท่านั้น\n    - เมื่อรวมร่างแล้ว แต่ละการตั้งรับและการกระทำควบคุมโดยนักบินที่ขับยูนิตหลัก\n    - หากยูนิตหลักหมดสภาพการต่อสู้ จะแยกจากกันโดยที่ยูนิตที่ร่วมรวมร่างจะแยกออกจากกัน"}, {"id": 46, "timeline": "UC 0079", "name": "Beam Cannon (4)", "cost": 4, "type": "Weapon", "range": "ไกล", "tags": "พลังงาน", "augmentslot": "", "text": "Beam Cannon (4)\n- [ไกล,พลังงาน]\n- DMG 2 เต๋า"}, {"id": 47, "timeline": "UC 0079", "name": "Missile Launcher (1) +2", "cost": 1, "type": "Equipment", "range": "ไกล", "tags": "กายภาพ,ระเบิด", "augmentslot": "", "text": "Missile Launcher (1) +2\n- [ไกล,กายภาพ,ระเบิด]\n- ถ้าโจมตีสำเร็จทำDMGอีก 1 เต๋า\n- เมื่อโจมตีสำเร็จให้เป้าหมายทอยเต๋าถ้าได้ 3- จะไม่สามารถเข้า Other Action Phase ได้"}, {"id": 48, "timeline": "UC 0079 MSV", "name": "EXAM System (4)", "cost": 4, "type": "Augment", "range": "", "tags": "", "augmentslot": "Body", "text": "> EXAM System (4)\n    - [Body]\n    - นักบินที่มี [Psychic] ไม่สามารถใช้ได้\n    - เมื่อเปิดใช้งานต้องทอยD6 TNที่ 4+\n    - หากไม่ผ่าน จะเปิดไม่ได้และเคลื่อนที่ลดครึ่ง (ปัดขึ้น) ในเทิร์นนี้\n    - หากผ่าน การโจมตี/ตั้งรับ/ทุกการกระทำได้รับโบัส +2 เต๋า เป็นเวลา 1 รอบ\n    - หลังครบ 1 รอบให้ทอย D6 TNที่ 4+ หากไม่ผ่าน จะถูกข้ามเทิร์น โบนัสหายไป ใช้เต๋าทักษะนักบินไม่ได้ และต้องตั้งรับด้วย [Body] เท่านั้น เป็นเวลา 1 รอบ จะเปิดใช้งานได้อีกครั้งใน 2 เทิร์น"}, {"id": 49, "timeline": "UC 0079 MSV", "name": "Abdominal Wired-Control Missile (1) +2", "cost": 1, "type": "Equipment", "range": "ไกล", "tags": "กายภาพ,ระเบิด", "augmentslot": "", "text": "Abdominal Wired-Control Missile (1) +2\n- [ไกล,กายภาพ,ระเบิด]\n- ถ้าโจมตีสำเร็จทำDMGอีก 1 เต๋า\n- เมื่อโจมตีสำเร็จให้เป้าหมายทอยเต๋าถ้าได้ 3- จะไม่สามารถทำ Other Action ได้"}, {"id": 50, "timeline": "UC 0079 MSV", "name": "Heat Lancer (6)", "cost": 6, "type": "Weapon", "range": "กลาง", "tags": "กายภาพ,ความร้อน", "augmentslot": "", "text": "Heat Lancer (6)\n- [กลาง,กายภาพ,ความร้อน] \n- DMG 2 เต๋า\n- DMG เป็น D2+2 เต๋า เมื่อโจมตีเป้าหมายที่เป็นยาน หรือ Heavy Mobile Armor \n> Sweeping Heat Lancer (3)\n  - [ใกล้,กายภาพ,ความร้อน] \n  - DMG 1 เต๋า\n  - โจมตีทุกยูนิตเป็นรูปพัดในระยะใกล้"}]</script>
+<script>
+/* ตั้งค่า: วาง URL ของ Google Sheet ที่ Publish to web เป็น CSV เพื่อให้เว็บดึงข้อมูลล่าสุดเองทุกครั้งที่เปิด
+   (File > Share > Publish to web > เลือกชีต items > รูปแบบ CSV) ถ้าเว้นว่าง เว็บจะใช้ข้อมูลที่ฝังไว้ในไฟล์นี้ */
+const SHEET_CSV_URL = "";
+
+const $ = (s) => document.querySelector(s);
+const RANGE_ORDER = ["ใกล้","กลาง","ไกล"];
+const NO_RANGE = "ไม่มีระยะ";
+const TYPE_LABEL = {Weapon:"อาวุธ", Equipment:"อุปกรณ์", Augment:"Augment"};
+const TYPE_ORDER = ["Weapon","Equipment","Augment"];
+
+function parseCSV(text){
+  const rows=[];let row=[],f="",q=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(q){ if(c==='"'){ if(text[i+1]==='"'){f+='"';i++;} else q=false; } else f+=c; }
+    else if(c==='"') q=true;
+    else if(c===','){row.push(f);f="";}
+    else if(c==='\n'||c==='\r'){ if(c==='\r'&&text[i+1]==='\n')i++; row.push(f);f=""; if(row.some(x=>x.trim()!==""))rows.push(row); row=[]; }
+    else f+=c;
+  }
+  if(f!==""||row.length){row.push(f); if(row.some(x=>x.trim()!==""))rows.push(row);}
+  return rows;
+}
+function fromCSV(text){
+  const rows=parseCSV(text); if(!rows.length)return[];
+  const h=rows[0].map(x=>x.trim().toLowerCase().replace(/\s+/g,""));
+  const col=(n)=>h.indexOf(n);
+  const get=(r,...names)=>{for(const n of names){const i=col(n);if(i>=0)return (r[i]||"").trim();}return "";};
+  return rows.slice(1).map(r=>{
+    const tags=[get(r,"tags"),get(r,"tag1"),get(r,"tag2"),get(r,"tag3")].join(",");
+    return {id:Number(get(r,"id"))||0,timeline:get(r,"timeline"),name:get(r,"name"),cost:Number(get(r,"cost"))||0,
+      type:get(r,"type"),range:get(r,"range"),tags:tags,augmentslot:get(r,"augmentslot"),
+      text:(r[col("text")]||"").replace(/\r\n/g,"\n").trim()};
+  }).filter(x=>x.name);
+}
+const split=(s)=>(s||"").split(",").map(x=>x.trim()).filter(Boolean);
+
+let ITEMS=[];
+const S={q:"",types:new Set(),costs:new Set(),ranges:new Set(),tags:new Set(),slots:new Set(),times:new Set(),mode:"any",sort:"id",expand:false};
+
+function prep(it){
+  const m=it.name.match(/^(.*?)\s*\((\d+)\)\s*(?:([+x×])\s*(\d+))?\s*$/i);
+  it._title=m?m[1].trim():it.name;
+  it._mod=m&&m[3]?(m[3]==="+"?`+${m[4]} เต๋า`:`ใช้ได้ ${m[4]} ครั้ง`):"";
+  it._ranges=split(it.range); it._rset=it._ranges.length?it._ranges:[NO_RANGE];
+  it._tags=split(it.tags); it._slot=it.augmentslot||"";
+  it._hay=(it.name+" "+it.text+" "+it._tags.join(" ")+" "+it._ranges.join(" ")+" "+it.type+" "+it._slot).toLowerCase();
+  it._body=it.text.trim();
+  return it;
+}
+const costKey=(c)=>c>=6?"6+":String(c);
+
+function matches(it,skip){
+  if(skip!=="q"&&S.q){const terms=S.q.toLowerCase().split(/\s+/).filter(Boolean);if(!terms.every(t=>it._hay.includes(t)))return false;}
+  if(skip!=="types"&&S.types.size&&!S.types.has(it.type))return false;
+  if(skip!=="costs"&&S.costs.size&&!S.costs.has(costKey(it.cost)))return false;
+  if(skip!=="ranges"&&S.ranges.size&&!it._rset.some(r=>S.ranges.has(r)))return false;
+  if(skip!=="tags"&&S.tags.size){const sel=[...S.tags];const ok=S.mode==="all"?sel.every(t=>it._tags.includes(t)):sel.some(t=>it._tags.includes(t));if(!ok)return false;}
+  if(skip!=="slots"&&S.slots.size&&!S.slots.has(it._slot||NO_RANGE))return false;
+  if(skip!=="times"&&S.times.size&&!S.times.has(it.timeline))return false;
+  return true;
+}
+function sorted(list){
+  const a=[...list];
+  if(S.sort==="cost-asc")a.sort((x,y)=>x.cost-y.cost||x.id-y.id);
+  else if(S.sort==="cost-desc")a.sort((x,y)=>y.cost-x.cost||x.id-y.id);
+  else if(S.sort==="name")a.sort((x,y)=>x._title.localeCompare(y._title,"en",{sensitivity:"base"})||x.cost-y.cost);
+  else a.sort((x,y)=>x.id-y.id);
+  return a;
+}
+const esc=(s)=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function chipRow(el,key,values,set,fmt,cls){
+  el.innerHTML="";
+  values.forEach(v=>{
+    const n=ITEMS.filter(it=>matches(it,key)&&facetHas(key,it,v)).length;
+    const b=document.createElement("button");
+    b.type="button";b.className="chip"+(cls?" "+cls:"");b.setAttribute("aria-pressed",set.has(v));
+    b.innerHTML=`${esc(fmt?fmt(v):v)}<small>${n}</small>`;
+    if(n===0&&!set.has(v))b.style.opacity=".45";
+    b.onclick=()=>{set.has(v)?set.delete(v):set.add(v);render();};
+    el.appendChild(b);
+  });
+}
+function facetHas(key,it,v){
+  switch(key){
+    case"types":return it.type===v;
+    case"costs":return costKey(it.cost)===v;
+    case"ranges":return it._rset.includes(v);
+    case"tags":return it._tags.includes(v);
+    case"slots":return (it._slot||NO_RANGE)===v;
+    case"times":return it.timeline===v;
+  }
+}
+const uniq=(arr)=>[...new Set(arr)];
+
+function card(it){
+  const body=it._body?`<details${S.expand?" open":""}><summary>รายละเอียดและเอฟเฟกต์</summary><pre class="txt">${esc(it._body)}</pre><button class="btn copy" type="button" data-id="${it.id}">คัดลอกข้อความ</button></details>`:"";
+  const pills=[...it._ranges.map(r=>`<span class="pill range">${esc(r)}</span>`),
+    ...it._tags.map(t=>`<span class="pill">${esc(t)}</span>`),
+    it._slot?`<span class="pill slot">ช่อง ${esc(it._slot)}</span>`:""].join("");
+  return `<article class="card" data-type="${esc(it.type)}">
+    <div class="head"><div class="cost-box" aria-label="cost ${it.cost}">${it.cost}<i>COST</i></div>
+    <div><h3 class="title">${esc(it._title)}</h3>
+    <div class="kind"><span>${esc(TYPE_LABEL[it.type]||it.type)}</span>${it._mod?`<span class="mod">${esc(it._mod)}</span>`:""}<span style="color:var(--muted);font-weight:400">${esc(it.timeline)}</span></div></div></div>
+    <div class="meta">${pills}</div>${body}</article>`;
+}
+
+function activeChips(){
+  const out=[];
+  const add=(label,fn)=>out.push([label,fn]);
+  if(S.q)add(`ค้นหา: ${S.q}`,()=>{S.q="";$("#q").value="";});
+  S.types.forEach(v=>add(TYPE_LABEL[v]||v,()=>S.types.delete(v)));
+  S.costs.forEach(v=>add(`Cost ${v}`,()=>S.costs.delete(v)));
+  S.ranges.forEach(v=>add(`ระยะ ${v}`,()=>S.ranges.delete(v)));
+  S.tags.forEach(v=>add(`แท็ก ${v}`,()=>S.tags.delete(v)));
+  S.slots.forEach(v=>add(`ช่อง ${v}`,()=>S.slots.delete(v)));
+  S.times.forEach(v=>add(v,()=>S.times.delete(v)));
+  return out;
+}
+
+function render(){
+  const types=TYPE_ORDER.filter(t=>ITEMS.some(i=>i.type===t)).concat(uniq(ITEMS.map(i=>i.type)).filter(t=>t&&!TYPE_ORDER.includes(t)));
+  chipRow($("#f-type"),"types",types,S.types,v=>TYPE_LABEL[v]||v);
+  const costs=uniq(ITEMS.map(i=>costKey(i.cost))).sort((a,b)=>parseInt(a)-parseInt(b));
+  chipRow($("#f-cost"),"costs",costs,S.costs,null,"cost");
+  const ranges=RANGE_ORDER.filter(r=>ITEMS.some(i=>i._rset.includes(r))).concat(uniq(ITEMS.flatMap(i=>i._ranges)).filter(r=>!RANGE_ORDER.includes(r)),ITEMS.some(i=>i._rset.includes(NO_RANGE))?[NO_RANGE]:[]);
+  chipRow($("#f-range"),"ranges",ranges,S.ranges);
+  const tagCount={};ITEMS.forEach(i=>i._tags.forEach(t=>tagCount[t]=(tagCount[t]||0)+1));
+  chipRow($("#f-tag"),"tags",Object.keys(tagCount).sort((a,b)=>tagCount[b]-tagCount[a]||a.localeCompare(b,"th")),S.tags);
+  const slots=uniq(ITEMS.map(i=>i._slot)).filter(Boolean);
+  $("#g-slot").hidden=!slots.length;
+  chipRow($("#f-slot"),"slots",slots.concat(slots.length?[NO_RANGE]:[]),S.slots,v=>v===NO_RANGE?"ไม่ใช่ Augment":v);
+  const times=uniq(ITEMS.map(i=>i.timeline)).filter(Boolean);
+  $("#g-time").hidden=times.length<2;
+  chipRow($("#f-time"),"times",times,S.times);
+  $("#mode-any").setAttribute("aria-pressed",S.mode==="any");$("#mode-all").setAttribute("aria-pressed",S.mode==="all");
+
+  const list=sorted(ITEMS.filter(it=>matches(it)));
+  $("#count").innerHTML=`${list.length} <span>จาก ${ITEMS.length} รายการ</span>`;
+  const act=$("#active");act.innerHTML="";
+  activeChips().forEach(([label,fn])=>{const b=document.createElement("button");b.type="button";b.className="tag-x";b.textContent=label;b.onclick=()=>{fn();render();};act.appendChild(b);});
+  const nf=activeChips().length;
+  $("#toggleRail").textContent=nf?`ตัวกรอง (${nf})`:"ตัวกรอง";
+  $("#showRes").textContent=`ดูผลลัพธ์ ${list.length} รายการ`;
+  $("#grid").innerHTML=list.length?list.map(card).join(""):"";
+  if(!list.length){$("#grid").innerHTML=`<div class="empty" style="grid-column:1/-1"><div>ไม่พบรายการที่ตรงกับตัวกรอง</div><button class="btn primary" type="button" id="reset2">ล้างตัวกรอง</button></div>`;$("#reset2").onclick=reset;}
+}
+function reset(){S.mode="any";S.q="";$("#q").value="";["types","costs","ranges","tags","slots","times"].forEach(k=>S[k].clear());render();}
+
+function boot(items,source){
+  ITEMS=items.map(prep);
+  $("#stamp").textContent=`${ITEMS.length} รายการ`;
+  $("#foot").textContent=source==="sheet"?"ข้อมูลดึงสดจาก Google Sheet":"ข้อมูลฝังในไฟล์ (ตั้ง SHEET_CSV_URL เพื่อดึงสดจากชีต)";
+  render();
+}
+$("#q").addEventListener("input",e=>{S.q=e.target.value.trim();render();});
+$("#sort").addEventListener("change",e=>{S.sort=e.target.value;render();});
+$("#reset").onclick=reset;
+$("#mode-any").onclick=()=>{S.mode="any";render();};
+$("#mode-all").onclick=()=>{S.mode="all";render();};
+$("#expand").onclick=(e)=>{S.expand=!S.expand;e.currentTarget.setAttribute("aria-pressed",S.expand);e.currentTarget.textContent=S.expand?"ย่อข้อความทั้งหมด":"ขยายข้อความทั้งหมด";render();};
+$("#toggleRail").onclick=(e)=>{const r=$("#rail");const open=r.dataset.open!=="true";r.dataset.open=open;e.currentTarget.setAttribute("aria-expanded",open);};
+$("#grid").addEventListener("click",(e)=>{
+  const b=e.target.closest(".copy");if(!b)return;
+  const it=ITEMS.find(x=>String(x.id)===b.dataset.id);if(!it)return;
+  const done=()=>{b.textContent="คัดลอกแล้ว";setTimeout(()=>{b.textContent="คัดลอกข้อความ";},1500);};
+  const fallback=()=>{const t=b.parentElement.querySelector(".txt");const r=document.createRange();r.selectNodeContents(t);const s=getSelection();s.removeAllRanges();s.addRange(r);try{document.execCommand("copy");done();}catch(_){b.textContent="เลือกข้อความแล้ว กด Ctrl+C";}};
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(it._body).then(done,fallback);}else fallback();
+});
+$("#showRes").onclick=()=>{$("#rail").dataset.open="false";$("#toggleRail").setAttribute("aria-expanded","false");$("#grid").scrollIntoView({behavior:"smooth"});};
+if(matchMedia("(max-width:860px)").matches){$("#rail").dataset.open="false";}
+
+const seed=JSON.parse($("#seed").textContent);
+boot(seed,"embedded");
+if(SHEET_CSV_URL){
+  fetch(SHEET_CSV_URL).then(r=>{if(!r.ok)throw 0;return r.text();}).then(t=>{const d=fromCSV(t);if(d.length)boot(d,"sheet");}).catch(()=>{});
+}
+</script>
+
+</body>
+</html>
